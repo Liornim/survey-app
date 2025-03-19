@@ -1,34 +1,8 @@
-// Initialize votes object
-let votes = {
-    yes: 0,
-    maybe: 0,
-    no: 0
-};
-
-// Initialize user votes array
+// Initialize poll data
+let votes = { yes: 0, maybe: 0, no: 0 };
 let userVotes = [];
 
-// Load saved votes from localStorage
-function loadVotes() {
-    const savedVotes = localStorage.getItem('pollVotes');
-    const savedUserVotes = localStorage.getItem('userVotes');
-    
-    if (savedVotes) {
-        votes = JSON.parse(savedVotes);
-    }
-    
-    if (savedUserVotes) {
-        userVotes = JSON.parse(savedUserVotes);
-    }
-}
-
-// Save votes to localStorage
-function saveVotes() {
-    localStorage.setItem('pollVotes', JSON.stringify(votes));
-    localStorage.setItem('userVotes', JSON.stringify(userVotes));
-}
-
-// Get vote text in Hebrew
+// Function to get vote text
 function getVoteText(vote) {
     const voteTexts = {
         yes: 'כן',
@@ -38,183 +12,210 @@ function getVoteText(vote) {
     return voteTexts[vote] || vote;
 }
 
-// Update the display with current votes
-function updateDisplay() {
-    const total = userVotes.reduce((sum, vote) => sum + (vote.guests || 0), 0);
-    const totalYes = userVotes.reduce((sum, vote) => 
-        sum + (vote.vote === 'yes' ? (vote.guests || 0) : 0), 0);
-    
-    // Update totals in header
-    document.getElementById('totalParticipants').textContent = total;
-
-    // Update minyan message - only count yes votes
-    const minyanMessage = document.getElementById('minyanMessage');
-    if (totalYes > 5) {
-        minyanMessage.textContent = 'יש מניין';
-        minyanMessage.style.display = 'block';
-        minyanMessage.style.fontWeight = 'bold';
-        minyanMessage.style.color = '#4CAF50';
-    } else {
-        minyanMessage.textContent = '';
-        minyanMessage.style.display = 'none';
+// Function to validate email
+function validateEmail(email) {
+    // Basic email format check
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        return 'כתובת האימייל אינה תקינה';
     }
-    
-    // Calculate percentages based on total participants
-    const yesCount = userVotes.reduce((sum, vote) => 
-        sum + (vote.vote === 'yes' ? (vote.guests || 0) : 0), 0);
-    const maybeCount = userVotes.reduce((sum, vote) => 
-        sum + (vote.vote === 'maybe' ? (vote.guests || 0) : 0), 0);
-    const noCount = userVotes.reduce((sum, vote) => 
-        sum + (vote.vote === 'no' ? (vote.guests || 0) : 0), 0);
 
-    // Update percentage bars
-    if (total > 0) {
-        const yesPercentage = (yesCount / total) * 100;
-        const maybePercentage = (maybeCount / total) * 100;
-        const noPercentage = (noCount / total) * 100;
+    // Check for minimum length
+    const [localPart] = email.split('@');
+    if (localPart.length < 3) {
+        return 'כתובת האימייל קצרה מדי';
+    }
 
-        document.getElementById('yesBar').style.width = `${yesPercentage}%`;
-        document.getElementById('maybeBar').style.width = `${maybePercentage}%`;
-        document.getElementById('noBar').style.width = `${noPercentage}%`;
+    // List of allowed email domains
+    const allowedDomains = [
+        'gmail.com',
+        'yahoo.com',
+        'hotmail.com',
+        'outlook.com',
+        'aol.com',
+        'icloud.com',
+        'protonmail.com',
+        'walla.co.il',
+        'walla.com',
+        '012.net.il',
+        'bezeqint.net',
+        'netvision.net.il'
+    ];
 
-        document.getElementById('yesValue').textContent = `${Math.round(yesPercentage)}%`;
-        document.getElementById('maybeValue').textContent = `${Math.round(maybePercentage)}%`;
-        document.getElementById('noValue').textContent = `${Math.round(noPercentage)}%`;
-    } else {
-        document.getElementById('yesBar').style.width = '0%';
-        document.getElementById('maybeBar').style.width = '0%';
-        document.getElementById('noBar').style.width = '0%';
+    const domain = email.split('@')[1].toLowerCase();
+    if (!allowedDomains.includes(domain)) {
+        return 'נא להשתמש בשירות אימייל מוכר (gmail, yahoo וכו\')';
+    }
 
-        document.getElementById('yesValue').textContent = '0%';
-        document.getElementById('maybeValue').textContent = '0%';
-        document.getElementById('noValue').textContent = '0%';
+    // Check for inappropriate language in local part
+    const inappropriateWords = [
+        'shit', 'fuck', 'ass', 'bitch', 'cunt', 'dick', 'pussy', 'whore',
+        'חרא', 'זין', 'כוס', 'תחת', 'זונה', 'מזדיין', 'מזדיינת'
+    ];
+
+    const lowerEmail = email.toLowerCase();
+    for (const word of inappropriateWords) {
+        if (lowerEmail.includes(word)) {
+            return 'כתובת האימייל מכילה תוכן לא הולם';
+        }
+    }
+
+    return null; // Email is valid
+}
+
+// Function to update the display
+function updateDisplay() {
+    // Update vote counts
+    document.getElementById('yesValue').textContent = `${votes.yes}%`;
+    document.getElementById('maybeValue').textContent = `${votes.maybe}%`;
+    document.getElementById('noValue').textContent = `${votes.no}%`;
+
+    // Update bars
+    const totalVotes = votes.yes + votes.maybe + votes.no;
+    if (totalVotes > 0) {
+        document.getElementById('yesBar').style.width = `${(votes.yes / totalVotes) * 100}%`;
+        document.getElementById('maybeBar').style.width = `${(votes.maybe / totalVotes) * 100}%`;
+        document.getElementById('noBar').style.width = `${(votes.no / totalVotes) * 100}%`;
     }
 
     // Update votes table
-    const votesTableBody = document.getElementById('votesTableBody');
-    if (votesTableBody) {
-        votesTableBody.innerHTML = '';
-        userVotes.forEach(vote => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${vote.email}</td>
-                <td>${getVoteText(vote.vote)}</td>
-                <td>${vote.guests || 1}</td>
-            `;
-            votesTableBody.appendChild(row);
+    const tableBody = document.getElementById('votesTableBody');
+    tableBody.innerHTML = '';
+    userVotes.forEach(vote => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${vote.email}</td>
+            <td>${getVoteText(vote.vote)}</td>
+            <td>${vote.guests}</td>
+        `;
+        tableBody.appendChild(row);
+    });
+
+    // Update total participants
+    const totalParticipants = userVotes.reduce((sum, vote) => sum + vote.guests, 0);
+    document.getElementById('totalParticipants').textContent = totalParticipants;
+
+    // Update minyan message
+    const minyanMessage = document.getElementById('minyanMessage');
+    if (totalParticipants > 5) {
+        minyanMessage.textContent = 'יש מניין';
+        minyanMessage.style.display = 'block';
+    } else {
+        minyanMessage.style.display = 'none';
+    }
+}
+
+// Function to load poll data
+async function loadPollData() {
+    try {
+        const response = await fetch('https://raw.githubusercontent.com/YOUR_GITHUB_USERNAME/survey-app/main/votes.json');
+        if (!response.ok) {
+            throw new Error('Failed to load votes from GitHub');
+        }
+        const data = await response.json();
+        votes = data.votes;
+        userVotes = data.userVotes;
+        updateDisplay();
+    } catch (error) {
+        console.error('Error loading poll data:', error);
+    }
+}
+
+// Function to save vote
+async function saveVote(email, vote, guests) {
+    try {
+        // Get current data from GitHub
+        const response = await fetch('https://raw.githubusercontent.com/YOUR_GITHUB_USERNAME/survey-app/main/votes.json');
+        const data = response.ok ? await response.json() : { votes: { yes: 0, maybe: 0, no: 0 }, userVotes: [] };
+        
+        // Check if email already voted
+        const existingVoteIndex = data.userVotes.findIndex(v => v.email === email);
+        
+        if (existingVoteIndex !== -1) {
+            // Update existing vote
+            const oldVote = data.userVotes[existingVoteIndex].vote;
+            data.votes[oldVote]--;
+            data.votes[vote]++;
+            data.userVotes[existingVoteIndex] = { email, vote, guests };
+        } else {
+            // Add new vote
+            data.votes[vote]++;
+            data.userVotes.push({ email, vote, guests });
+        }
+
+        // Save to server
+        const saveResponse = await fetch('save_vote.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
         });
+
+        if (!saveResponse.ok) {
+            throw new Error('Failed to save vote');
+        }
+
+        return true;
+    } catch (error) {
+        console.error('Error saving vote:', error);
+        throw error;
     }
 }
 
 // Handle voting
-function vote(option) {
+async function vote(option) {
     const userEmail = document.getElementById('userEmail').value.trim().toLowerCase();
     const guestCount = parseInt(document.getElementById('guestCount').value) || 1;
 
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!userEmail) {
-        alert('אנא הכנס את האימייל שלך');
-        return;
-    }
-    if (!emailRegex.test(userEmail)) {
-        alert('אנא הכנס כתובת אימייל תקינה');
+        alert('נא להזין אימייל');
         return;
     }
 
-    // Check if email has already voted
-    const existingVote = userVotes.find(vote => vote.email === userEmail);
-    if (existingVote) {
-        if (existingVote.vote === option && existingVote.guests === guestCount) {
-            alert('כבר הצבעת באפשרות זו');
-            return;
-        }
+    // Validate email
+    const emailError = validateEmail(userEmail);
+    if (emailError) {
+        alert(emailError);
+        return;
+    }
 
-        // Update existing vote
-        const oldVote = existingVote.vote;
-        const oldGuests = existingVote.guests;
-
-        // Update vote counts
-        if (oldVote !== option) {
-            votes[oldVote]--;
-            votes[option]++;
-            existingVote.vote = option;
-        }
-
-        // Update guest count
-        existingVote.guests = guestCount;
-
-        // Save changes
-        localStorage.setItem('pollVotes', JSON.stringify(votes));
-        localStorage.setItem('userVotes', JSON.stringify(userVotes));
+    try {
+        // Save vote
+        await saveVote(userEmail, option, guestCount);
         
-        updateDisplay();
-
-        // Show change message
-        const message = oldVote !== option ? 
-            `הצבעתך שונתה מ${getVoteText(oldVote)} ל${getVoteText(option)}` :
-            `מספר המשתתפים עודכן מ-${oldGuests} ל-${guestCount}`;
+        // Reload data to update display
+        loadPollData();
         
-        alert(message);
-        return;
+        alert('תודה על ההצבעה!');
+    } catch (error) {
+        console.error('Error submitting vote:', error);
+        alert('שגיאה בשליחת ההצבעה: ' + error.message);
     }
-
-    // New vote
-    votes[option]++;
-    userVotes.push({
-        email: userEmail,
-        vote: option,
-        guests: guestCount
-    });
-
-    // Save to localStorage
-    localStorage.setItem('pollVotes', JSON.stringify(votes));
-    localStorage.setItem('userVotes', JSON.stringify(userVotes));
-    
-    updateDisplay();
-    alert('תודה על ההצבעה!');
 }
 
-// Show thank you message
-function showThankYouMessage() {
-    const question = document.querySelector('.question h2');
-    question.textContent = 'תודה על ההצבעה!';
-    question.style.color = '#4CAF50';
-}
-
-// Share poll
+// Share poll function
 function sharePoll() {
     const url = window.location.href;
     navigator.clipboard.writeText(url).then(() => {
         alert('הקישור הועתק ללוח!');
     }).catch(err => {
-        console.error('Failed to copy text: ', err);
-        alert('לא ניתן להעתיק את הקישור. אנא העתק אותו ידנית.');
+        console.error('Error copying link:', err);
+        alert('שגיאה בהעתקת הקישור');
     });
 }
 
 // Update date
 function updateDate() {
-    const savedDate = localStorage.getItem('pollDate');
-    if (savedDate) {
-        const date = new Date(savedDate);
-        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-        const dateString = date.toLocaleDateString('he-IL', options);
-        const dateElement = document.querySelector('.date');
-        if (dateElement) {
-            dateElement.textContent = dateString;
-        }
-    } else {
-        const dateElement = document.querySelector('.date');
-        if (dateElement) {
-            dateElement.textContent = 'לא נבחר תאריך';
-        }
-    }
+    const date = new Date();
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    document.querySelector('.date').textContent = date.toLocaleDateString('he-IL', options);
 }
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
-    loadVotes();
-    updateDisplay();
     updateDate();
+    loadPollData();
+    // Refresh poll data every 5 seconds
+    setInterval(loadPollData, 5000);
 }); 
