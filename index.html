@@ -3,25 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>סקר פשוט</title>
+    <title>פוקר דאסט</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
-        <h1>סקר פשוט</h1>
+        <div class="header">
+            <h1>פוקר דאסט</h1>
+            <div class="date">תאריך: <span id="currentDate"></span></div>
+            <div id="minyanMessage" class="minyan-message"></div>
+            <div class="totals">
+                <span>סה"כ משתתפים: <span id="totalParticipants">0</span></span>
+            </div>
+        </div>
         <div class="poll-container">
             <div class="user-info">
                 <div class="input-group">
-                    <label for="userName">שם:</label>
-                    <input type="text" id="userName" placeholder="הכנס את שמך">
+                    <label for="userEmail">אימייל:</label>
+                    <input type="email" id="userEmail" placeholder="הכנס את האימייל שלך">
+                    <small class="vote-info">אם כבר הצבעת, תוכל לשנות את ההצבעה שלך</small>
                 </div>
                 <div class="input-group">
-                    <label for="voteDate">תאריך:</label>
-                    <input type="date" id="voteDate">
-                </div>
-                <div class="input-group">
-                    <label for="guestCount">מספר אורחים:</label>
-                    <input type="number" id="guestCount" min="0" value="0">
+                    <label for="guestCount">מספר משתתפים:</label>
+                    <input type="number" id="guestCount" min="1" value="1">
                 </div>
             </div>
             <div class="question">
@@ -58,17 +62,12 @@
             <div class="change-vote-section" id="changeVoteSection" style="display: none;">
                 <button class="change-vote-btn" onclick="resetVote()">שנה את ההצבעה</button>
             </div>
-            <div class="share-section">
-                <button class="share-btn" onclick="sharePoll()">שתף את הסקר</button>
-                <div class="total-votes">סה"כ הצבעות: <span id="totalVotes">0</span></div>
-            </div>
             <div class="results-table">
                 <h3>טבלת תוצאות</h3>
                 <table>
                     <thead>
                         <tr>
-                            <th>שם</th>
-                            <th>תאריך</th>
+                            <th>אימייל</th>
                             <th>הצבעה</th>
                             <th>אורחים</th>
                         </tr>
