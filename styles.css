@@ -91,15 +91,16 @@ h1 {
 .result-bar {
     display: flex;
     align-items: center;
+    margin: 10px 0;
     gap: 10px;
 }
 
-.result-label {
-    min-width: 60px;
-    color: #666;
+.bar-label {
+    min-width: 50px;
+    text-align: right;
 }
 
-.result-bar-container {
+.bar-container {
     flex: 1;
     height: 20px;
     background-color: #f0f0f0;
@@ -107,27 +108,43 @@ h1 {
     overflow: hidden;
 }
 
-.result-bar-fill {
+.bar {
     height: 100%;
-    transition: width 0.5s ease-in-out;
+    width: 0;
+    transition: width 0.3s ease;
 }
 
-.result-bar-fill.yes {
+.bar.yes {
     background-color: #4CAF50;
 }
 
-.result-bar-fill.maybe {
-    background-color: #FF9800;
+.bar.maybe {
+    background-color: #FFC107;
 }
 
-.result-bar-fill.no {
+.bar.no {
     background-color: #f44336;
 }
 
-.result-value {
+.bar-value {
     min-width: 50px;
     text-align: left;
-    color: #666;
+}
+
+.change-vote-btn {
+    background-color: #2196F3;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 10px 0;
+    font-size: 1em;
+    transition: background-color 0.3s;
+}
+
+.change-vote-btn:hover {
+    background-color: #1976D2;
 }
 
 .share-section {
@@ -173,6 +190,54 @@ h1 {
     background-color: #e0e0e0;
 }
 
+#minyanMessage {
+    font-size: 1.8em;
+    font-weight: bold;
+    color: #4CAF50;
+    margin: 10px 0;
+    text-align: center;
+    display: none;
+}
+
+.votes-table-section {
+    margin-top: 30px;
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.votes-table-section h3 {
+    margin: 0 0 15px 0;
+    color: #333;
+    text-align: center;
+}
+
+.votes-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.votes-table th, .votes-table td {
+    padding: 12px;
+    border: 1px solid #ddd;
+    text-align: right;
+}
+
+.votes-table th {
+    background-color: #f5f5f5;
+    font-weight: bold;
+}
+
+.votes-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.votes-table tr:hover {
+    background-color: #f5f5f5;
+}
+
 @media (max-width: 480px) {
     .container {
         padding: 20px;
@@ -183,7 +248,37 @@ h1 {
         min-width: unset;
     }
 
-    .result-label {
+    .bar-label {
         min-width: 50px;
     }
+
+    .votes-table-section {
+        padding: 10px;
+    }
+    
+    .votes-table th, .votes-table td {
+        padding: 8px;
+        font-size: 0.9em;
+    }
+}
+
+.large-text {
+    font-size: 1.5em;
+    text-align: center;
+    margin: 15px 0;
+    font-weight: bold;
+    color: #333;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.date {
+    margin: 15px 0;
+}
+
+.totals {
+    margin: 15px 0;
 } 

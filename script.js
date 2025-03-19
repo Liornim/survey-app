@@ -52,20 +52,58 @@ function updateDisplay() {
     if (totalYes > 5) {
         minyanMessage.textContent = 'יש מניין';
         minyanMessage.style.display = 'block';
+        minyanMessage.style.fontWeight = 'bold';
+        minyanMessage.style.color = '#4CAF50';
     } else {
         minyanMessage.textContent = '';
         minyanMessage.style.display = 'none';
     }
     
-    // Update each option's percentage and bar
-    const totalVotes = Object.values(votes).reduce((a, b) => a + b, 0);
-    document.getElementById('totalVotes').textContent = totalVotes;
+    // Calculate percentages based on total participants
+    const yesCount = userVotes.reduce((sum, vote) => 
+        sum + (vote.vote === 'yes' ? (vote.guests || 0) : 0), 0);
+    const maybeCount = userVotes.reduce((sum, vote) => 
+        sum + (vote.vote === 'maybe' ? (vote.guests || 0) : 0), 0);
+    const noCount = userVotes.reduce((sum, vote) => 
+        sum + (vote.vote === 'no' ? (vote.guests || 0) : 0), 0);
 
-    ['yes', 'maybe', 'no'].forEach(option => {
-        const percentage = totalVotes > 0 ? (votes[option] / totalVotes) * 100 : 0;
-        document.getElementById(`${option}Bar`).style.width = `${percentage}%`;
-        document.getElementById(`${option}Value`).textContent = `${Math.round(percentage)}%`;
-    });
+    // Update percentage bars
+    if (total > 0) {
+        const yesPercentage = (yesCount / total) * 100;
+        const maybePercentage = (maybeCount / total) * 100;
+        const noPercentage = (noCount / total) * 100;
+
+        document.getElementById('yesBar').style.width = `${yesPercentage}%`;
+        document.getElementById('maybeBar').style.width = `${maybePercentage}%`;
+        document.getElementById('noBar').style.width = `${noPercentage}%`;
+
+        document.getElementById('yesValue').textContent = `${Math.round(yesPercentage)}%`;
+        document.getElementById('maybeValue').textContent = `${Math.round(maybePercentage)}%`;
+        document.getElementById('noValue').textContent = `${Math.round(noPercentage)}%`;
+    } else {
+        document.getElementById('yesBar').style.width = '0%';
+        document.getElementById('maybeBar').style.width = '0%';
+        document.getElementById('noBar').style.width = '0%';
+
+        document.getElementById('yesValue').textContent = '0%';
+        document.getElementById('maybeValue').textContent = '0%';
+        document.getElementById('noValue').textContent = '0%';
+    }
+
+    // Update votes table
+    const votesTableBody = document.getElementById('votesTableBody');
+    if (votesTableBody) {
+        votesTableBody.innerHTML = '';
+        userVotes.forEach(vote => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${vote.email}</td>
+                <td>${getVoteText(vote.vote)}</td>
+                <td>${vote.guests || 1}</td>
+            `;
+            votesTableBody.appendChild(row);
+        });
+    }
 }
 
 // Handle voting
@@ -87,60 +125,42 @@ function vote(option) {
     // Check if email has already voted
     const existingVote = userVotes.find(vote => vote.email === userEmail);
     if (existingVote) {
-        // If the vote is the same, just update the guest count
-        if (existingVote.vote === option) {
-            existingVote.guests = guestCount;
-            localStorage.setItem('userVotes', JSON.stringify(userVotes));
-            updateDisplay();
-            
-            // Show update message
-            const question = document.querySelector('.question h2');
-            question.textContent = `מספר המשתתפים עודכן ל-${guestCount}`;
-            question.style.color = '#FF9800';
-            
-            // Reset message after 3 seconds
-            setTimeout(() => {
-                question.textContent = 'תודה על העדכון!';
-                question.style.color = '#4CAF50';
-            }, 3000);
+        if (existingVote.vote === option && existingVote.guests === guestCount) {
+            alert('כבר הצבעת באפשרות זו');
             return;
         }
-        
-        // Ask if user wants to change their vote
-        if (confirm('כבר הצבעת בסקר זה. האם תרצה לשנות את ההצבעה שלך?')) {
-            // If voting differently, update the vote
-            const oldVote = existingVote.vote;
+
+        // Update existing vote
+        const oldVote = existingVote.vote;
+        const oldGuests = existingVote.guests;
+
+        // Update vote counts
+        if (oldVote !== option) {
             votes[oldVote]--;
             votes[option]++;
-            
-            // Update the existing vote
             existingVote.vote = option;
-            existingVote.guests = guestCount;
-            
-            // Save to localStorage
-            localStorage.setItem('pollVotes', JSON.stringify(votes));
-            localStorage.setItem('userVotes', JSON.stringify(userVotes));
-            
-            updateDisplay();
-            
-            // Show change message
-            const question = document.querySelector('.question h2');
-            question.textContent = `הצבעתך שונתה מ-${getVoteText(oldVote)} ל-${getVoteText(option)}`;
-            question.style.color = '#FF9800';
-            
-            // Reset message after 3 seconds
-            setTimeout(() => {
-                question.textContent = 'תודה על ההצבעה!';
-                question.style.color = '#4CAF50';
-            }, 3000);
         }
+
+        // Update guest count
+        existingVote.guests = guestCount;
+
+        // Save changes
+        localStorage.setItem('pollVotes', JSON.stringify(votes));
+        localStorage.setItem('userVotes', JSON.stringify(userVotes));
+        
+        updateDisplay();
+
+        // Show change message
+        const message = oldVote !== option ? 
+            `הצבעתך שונתה מ${getVoteText(oldVote)} ל${getVoteText(option)}` :
+            `מספר המשתתפים עודכן מ-${oldGuests} ל-${guestCount}`;
+        
+        alert(message);
         return;
     }
 
     // New vote
     votes[option]++;
-    
-    // Add user vote to history
     userVotes.push({
         email: userEmail,
         vote: option,
@@ -152,18 +172,7 @@ function vote(option) {
     localStorage.setItem('userVotes', JSON.stringify(userVotes));
     
     updateDisplay();
-    
-    // Disable buttons after voting
-    document.querySelectorAll('.option-btn').forEach(btn => {
-        btn.disabled = true;
-        btn.style.opacity = '0.7';
-    });
-
-    // Show change vote button
-    document.getElementById('changeVoteSection').style.display = 'block';
-    
-    // Show thank you message
-    showThankYouMessage();
+    alert('תודה על ההצבעה!');
 }
 
 // Show thank you message
@@ -191,9 +200,15 @@ function updateDate() {
         const date = new Date(savedDate);
         const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
         const dateString = date.toLocaleDateString('he-IL', options);
-        document.querySelector('.date').textContent = dateString;
+        const dateElement = document.querySelector('.date');
+        if (dateElement) {
+            dateElement.textContent = dateString;
+        }
     } else {
-        document.querySelector('.date').textContent = 'לא נבחר תאריך';
+        const dateElement = document.querySelector('.date');
+        if (dateElement) {
+            dateElement.textContent = 'לא נבחר תאריך';
+        }
     }
 }
 

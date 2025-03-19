@@ -9,56 +9,67 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>סקר פשוט.</h1>
-            <div class="date"></div>
+            <h1>פוקר דאסט</h1>
+            <div class="date large-text"></div>
             <div id="minyanMessage"></div>
-            <div class="totals">
+            <div class="totals large-text">
                 <span>סה"כ משתתפים: <span id="totalParticipants">0</span></span>
             </div>
         </div>
-        <h1>סקר פשוט</h1>
         <div class="poll-container">
-            <div class="question">
-                <h2>האם אתה מסכים?</h2>
-            </div>
             <div class="user-info">
                 <input type="email" id="userEmail" placeholder="הכנס את האימייל שלך" required>
                 <input type="number" id="guestCount" placeholder="מספר משתתפים" min="1" value="1" required>
             </div>
-            <div class="options">
-                <button class="option-btn yes" onclick="vote('yes')">כן</button>
-                <button class="option-btn maybe" onclick="vote('maybe')">אולי</button>
-                <button class="option-btn no" onclick="vote('no')">לא</button>
-            </div>
-            <div class="results" id="results">
-                <div class="result-bar">
-                    <div class="result-label">כן:</div>
-                    <div class="result-bar-container">
-                        <div class="result-bar-fill yes" id="yesBar" style="width: 0%"></div>
-                    </div>
-                    <div class="result-value" id="yesValue">0%</div>
-                </div>
-                <div class="result-bar">
-                    <div class="result-label">אולי:</div>
-                    <div class="result-bar-container">
-                        <div class="result-bar-fill maybe" id="maybeBar" style="width: 0%"></div>
-                    </div>
-                    <div class="result-value" id="maybeValue">0%</div>
-                </div>
-                <div class="result-bar">
-                    <div class="result-label">לא:</div>
-                    <div class="result-bar-container">
-                        <div class="result-bar-fill no" id="noBar" style="width: 0%"></div>
-                    </div>
-                    <div class="result-value" id="noValue">0%</div>
+            <div id="voteButtons">
+                <div class="options">
+                    <button class="option-btn yes" onclick="vote('yes')">כן</button>
+                    <button class="option-btn maybe" onclick="vote('maybe')">אולי</button>
+                    <button class="option-btn no" onclick="vote('no')">לא</button>
                 </div>
             </div>
-            <div class="share-section">
-                <button class="share-btn" onclick="sharePoll()">שתף את הסקר</button>
-                <div class="total-votes">סה"כ הצבעות: <span id="totalVotes">0</span></div>
+            <div class="results">
+                <div class="result-bar">
+                    <div class="bar-label">כן:</div>
+                    <div class="bar-container">
+                        <div id="yesBar" class="bar yes"></div>
+                    </div>
+                    <div id="yesValue" class="bar-value">0%</div>
+                </div>
+                <div class="result-bar">
+                    <div class="bar-label">אולי:</div>
+                    <div class="bar-container">
+                        <div id="maybeBar" class="bar maybe"></div>
+                    </div>
+                    <div id="maybeValue" class="bar-value">0%</div>
+                </div>
+                <div class="result-bar">
+                    <div class="bar-label">לא:</div>
+                    <div class="bar-container">
+                        <div id="noBar" class="bar no"></div>
+                    </div>
+                    <div id="noValue" class="bar-value">0%</div>
+                </div>
             </div>
+            <button class="share-btn" onclick="sharePoll()">שתף את הסקר</button>
+        </div>
+
+        <div class="votes-table-section">
+            <h3>טבלת הצבעות</h3>
+            <table class="votes-table">
+                <thead>
+                    <tr>
+                        <th>אימייל</th>
+                        <th>הצבעה</th>
+                        <th>מספר משתתפים</th>
+                    </tr>
+                </thead>
+                <tbody id="votesTableBody">
+                </tbody>
+            </table>
         </div>
     </div>
+
     <script src="script.js"></script>
 </body>
 </html> 
