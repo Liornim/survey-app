@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>הגדרות מנהל - סקר פשוט</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .admin-container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .admin-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .admin-section h2 {
+            margin-top: 0;
+            color: #333;
+        }
+        .admin-input {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .admin-btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .admin-btn.danger {
+            background-color: #f44336;
+        }
+        .admin-btn:hover {
+            opacity: 0.9;
+        }
+        .votes-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        .votes-table th, .votes-table td {
+            padding: 8px;
+            border: 1px solid #ddd;
+            text-align: right;
+        }
+        .votes-table th {
+            background-color: #f5f5f5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>הגדרות מנהל</h1>
+            <a href="index.html" class="admin-link">חזרה לסקר</a>
+        </div>
+        
+        <div class="admin-container">
+            <div class="admin-section">
+                <h2>איפוס הצבעות</h2>
+                <p>זה ימחק את כל ההצבעות הקיימות</p>
+                <button class="admin-btn danger" onclick="resetVotes()">איפוס הצבעות</button>
+            </div>
+
+            <div class="admin-section">
+                <h2>טבלת הצבעות</h2>
+                <table class="votes-table">
+                    <thead>
+                        <tr>
+                            <th>אימייל</th>
+                            <th>הצבעה</th>
+                            <th>מספר משתתפים</th>
+                        </tr>
+                    </thead>
+                    <tbody id="votesTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load votes from localStorage
+        function loadVotes() {
+            const userVotes = JSON.parse(localStorage.getItem('userVotes') || '[]');
+            const votesTableBody = document.getElementById('votesTableBody');
+            votesTableBody.innerHTML = '';
+
+            userVotes.forEach(vote => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${vote.email}</td>
+                    <td>${getVoteText(vote.vote)}</td>
+                    <td>${vote.guests || 1}</td>
+                `;
+                votesTableBody.appendChild(row);
+            });
+        }
+
+        // Get vote text in Hebrew
+        function getVoteText(vote) {
+            const voteTexts = {
+                yes: 'כן',
+                maybe: 'אולי',
+                no: 'לא'
+            };
+            return voteTexts[vote] || vote;
+        }
+
+        // Reset all votes
+        function resetVotes() {
+            if (confirm('האם אתה בטוח שברצונך למחוק את כל ההצבעות?')) {
+                localStorage.removeItem('pollVotes');
+                localStorage.removeItem('userVotes');
+                loadVotes();
+                alert('כל ההצבעות נמחקו בהצלחה');
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', loadVotes);
+    </script>
+</body>
+</html> 
