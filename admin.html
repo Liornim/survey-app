@@ -70,6 +70,12 @@
         
         <div class="admin-container">
             <div class="admin-section">
+                <h2>הגדרת תאריך</h2>
+                <input type="date" id="pollDate" class="admin-input">
+                <button class="admin-btn" onclick="saveDate()">שמור תאריך</button>
+            </div>
+
+            <div class="admin-section">
                 <h2>איפוס הצבעות</h2>
                 <p>זה ימחק את כל ההצבעות הקיימות</p>
                 <button class="admin-btn danger" onclick="resetVotes()">איפוס הצבעות</button>
@@ -130,8 +136,31 @@
             }
         }
 
+        // Save date
+        function saveDate() {
+            const dateInput = document.getElementById('pollDate');
+            const selectedDate = dateInput.value;
+            if (!selectedDate) {
+                alert('אנא בחר תאריך');
+                return;
+            }
+            localStorage.setItem('pollDate', selectedDate);
+            alert('התאריך נשמר בהצלחה');
+        }
+
+        // Load saved date
+        function loadDate() {
+            const savedDate = localStorage.getItem('pollDate');
+            if (savedDate) {
+                document.getElementById('pollDate').value = savedDate;
+            }
+        }
+
         // Initialize
-        document.addEventListener('DOMContentLoaded', loadVotes);
+        document.addEventListener('DOMContentLoaded', () => {
+            loadVotes();
+            loadDate();
+        });
     </script>
 </body>
 </html> 

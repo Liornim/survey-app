@@ -186,10 +186,15 @@ function sharePoll() {
 
 // Update date
 function updateDate() {
-    const date = new Date();
-    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    const dateString = date.toLocaleDateString('he-IL', options);
-    document.querySelector('.date').textContent = dateString;
+    const savedDate = localStorage.getItem('pollDate');
+    if (savedDate) {
+        const date = new Date(savedDate);
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        const dateString = date.toLocaleDateString('he-IL', options);
+        document.querySelector('.date').textContent = dateString;
+    } else {
+        document.querySelector('.date').textContent = 'לא נבחר תאריך';
+    }
 }
 
 // Initialize
