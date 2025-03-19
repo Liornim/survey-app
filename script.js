@@ -108,24 +108,13 @@ function updateDisplay() {
 // Function to load poll data
 async function loadPollData() {
     try {
-        // First try to load from localStorage
+        // Load from localStorage
         const savedData = localStorage.getItem('pollData');
         if (savedData) {
             const data = JSON.parse(savedData);
             votes = data.votes;
             userVotes = data.userVotes;
             updateDisplay();
-        }
-
-        // Then try to load from GitHub
-        const response = await fetch('https://raw.githubusercontent.com/YOUR_GITHUB_USERNAME/survey-app/main/votes.json');
-        if (response.ok) {
-            const data = await response.json();
-            votes = data.votes;
-            userVotes = data.userVotes;
-            updateDisplay();
-            // Update localStorage with latest data
-            localStorage.setItem('pollData', JSON.stringify(data));
         }
     } catch (error) {
         console.error('Error loading poll data:', error);
@@ -156,28 +145,6 @@ async function saveVote(email, vote, guests) {
 
         // Save to localStorage
         localStorage.setItem('pollData', JSON.stringify(data));
-
-        // Try to save to GitHub
-        try {
-            const response = await fetch('https://api.github.com/repos/YOUR_GITHUB_USERNAME/survey-app/contents/votes.json', {
-                method: 'PUT',
-                headers: {
-                    'Authorization': 'token YOUR_GITHUB_TOKEN',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    message: 'Update votes',
-                    content: btoa(JSON.stringify(data, null, 2))
-                })
-            });
-
-            if (!response.ok) {
-                console.error('Failed to save to GitHub, but vote is saved locally');
-            }
-        } catch (error) {
-            console.error('Error saving to GitHub, but vote is saved locally:', error);
-        }
-
         return true;
     } catch (error) {
         console.error('Error saving vote:', error);

@@ -29,11 +29,37 @@
         }
         .actions {
             margin: 20px 0;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
         }
         button {
             padding: 10px 20px;
-            margin: 0 10px;
             cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+        button.danger {
+            background-color: #f44336;
+        }
+        .share-section {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-radius: 4px;
+        }
+        .share-section textarea {
+            width: 100%;
+            height: 100px;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
         }
     </style>
 </head>
@@ -42,7 +68,14 @@
         <h1>ניהול הצבעות</h1>
         <div class="actions">
             <button onclick="exportVotes()">ייצוא הצבעות</button>
-            <button onclick="resetVotes()">איפוס הצבעות</button>
+            <button onclick="resetVotes()" class="danger">איפוס הצבעות</button>
+        </div>
+        <div class="share-section">
+            <h2>שיתוף הצבעות</h2>
+            <p>העתק את הקוד הבא כדי לשתף את ההצבעות עם אחרים:</p>
+            <textarea id="shareCode" readonly></textarea>
+            <button onclick="copyShareCode()">העתק קוד</button>
+            <button onclick="importVotes()">ייבא הצבעות</button>
         </div>
         <table id="votesTable">
             <thead>
@@ -83,6 +116,8 @@
                     `;
                     tableBody.appendChild(row);
                 });
+                // Update share code
+                document.getElementById('shareCode').value = btoa(savedData);
             }
         }
 
@@ -100,6 +135,29 @@
                 a.click();
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
+            }
+        }
+
+        // Function to copy share code
+        function copyShareCode() {
+            const shareCode = document.getElementById('shareCode');
+            shareCode.select();
+            document.execCommand('copy');
+            alert('הקוד הועתק ללוח!');
+        }
+
+        // Function to import votes
+        function importVotes() {
+            const shareCode = prompt('הדבק את קוד השיתוף כאן:');
+            if (shareCode) {
+                try {
+                    const data = JSON.parse(atob(shareCode));
+                    localStorage.setItem('pollData', JSON.stringify(data));
+                    loadVotes();
+                    alert('ההצבעות יובאו בהצלחה!');
+                } catch (error) {
+                    alert('שגיאה בייבוא ההצבעות');
+                }
             }
         }
 
