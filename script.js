@@ -108,14 +108,25 @@ function updateDisplay() {
 // Function to load poll data
 async function loadPollData() {
     try {
-        const response = await fetch('https://raw.githubusercontent.com/YOUR_GITHUB_USERNAME/survey-app/main/votes.json');
-        if (!response.ok) {
-            throw new Error('Failed to load votes from GitHub');
+        // First try to load from localStorage
+        const savedData = localStorage.getItem('pollData');
+        if (savedData) {
+            const data = JSON.parse(savedData);
+            votes = data.votes;
+            userVotes = data.userVotes;
+            updateDisplay();
         }
-        const data = await response.json();
-        votes = data.votes;
-        userVotes = data.userVotes;
-        updateDisplay();
+
+        // Then try to load from GitHub
+        const response = await fetch('https://raw.githubusercontent.com/YOUR_GITHUB_USERNAME/survey-app/main/votes.json');
+        if (response.ok) {
+            const data = await response.json();
+            votes = data.votes;
+            userVotes = data.userVotes;
+            updateDisplay();
+            // Update localStorage with latest data
+            localStorage.setItem('pollData', JSON.stringify(data));
+        }
     } catch (error) {
         console.error('Error loading poll data:', error);
     }
@@ -124,9 +135,9 @@ async function loadPollData() {
 // Function to save vote
 async function saveVote(email, vote, guests) {
     try {
-        // Get current data from GitHub
-        const response = await fetch('https://raw.githubusercontent.com/YOUR_GITHUB_USERNAME/survey-app/main/votes.json');
-        const data = response.ok ? await response.json() : { votes: { yes: 0, maybe: 0, no: 0 }, userVotes: [] };
+        // Get current data from localStorage
+        const savedData = localStorage.getItem('pollData');
+        const data = savedData ? JSON.parse(savedData) : { votes: { yes: 0, maybe: 0, no: 0 }, userVotes: [] };
         
         // Check if email already voted
         const existingVoteIndex = data.userVotes.findIndex(v => v.email === email);
@@ -143,17 +154,28 @@ async function saveVote(email, vote, guests) {
             data.userVotes.push({ email, vote, guests });
         }
 
-        // Save to server
-        const saveResponse = await fetch('save_vote.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data)
-        });
+        // Save to localStorage
+        localStorage.setItem('pollData', JSON.stringify(data));
 
-        if (!saveResponse.ok) {
-            throw new Error('Failed to save vote');
+        // Try to save to GitHub
+        try {
+            const response = await fetch('https://api.github.com/repos/YOUR_GITHUB_USERNAME/survey-app/contents/votes.json', {
+                method: 'PUT',
+                headers: {
+                    'Authorization': 'token YOUR_GITHUB_TOKEN',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    message: 'Update votes',
+                    content: btoa(JSON.stringify(data, null, 2))
+                })
+            });
+
+            if (!response.ok) {
+                console.error('Failed to save to GitHub, but vote is saved locally');
+            }
+        } catch (error) {
+            console.error('Error saving to GitHub, but vote is saved locally:', error);
         }
 
         return true;

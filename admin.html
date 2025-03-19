@@ -3,126 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>הגדרות מנהל - סקר פשוט</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>ניהול הצבעות</title>
     <style>
-        .admin-container {
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            direction: rtl;
+        }
+        .container {
             max-width: 800px;
-            margin: 20px auto;
-            padding: 20px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin: 0 auto;
         }
-        .admin-section {
-            margin-bottom: 20px;
-            padding: 15px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        .admin-section h2 {
-            margin-top: 0;
-            color: #333;
-        }
-        .admin-input {
-            width: 100%;
-            padding: 8px;
-            margin: 5px 0;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        .admin-btn {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            margin: 5px;
-        }
-        .admin-btn.danger {
-            background-color: #f44336;
-        }
-        .admin-btn:hover {
-            opacity: 0.9;
-        }
-        .votes-table {
+        table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
+            margin-top: 20px;
         }
-        .votes-table th, .votes-table td {
-            padding: 8px;
+        th, td {
             border: 1px solid #ddd;
+            padding: 8px;
             text-align: right;
         }
-        .votes-table th {
-            background-color: #f5f5f5;
+        th {
+            background-color: #f4f4f4;
         }
-        .votes-table tr:nth-child(even) {
-            background-color: #f9f9f9;
+        .actions {
+            margin: 20px 0;
         }
-        .votes-table tr:hover {
-            background-color: #f5f5f5;
+        button {
+            padding: 10px 20px;
+            margin: 0 10px;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>הגדרות מנהל</h1>
-            <a href="index.html" class="admin-link">חזרה לסקר</a>
+        <h1>ניהול הצבעות</h1>
+        <div class="actions">
+            <button onclick="exportVotes()">ייצוא הצבעות</button>
+            <button onclick="resetVotes()">איפוס הצבעות</button>
         </div>
-        
-        <div class="admin-container">
-            <div class="admin-section">
-                <h2>הגדרת תאריך</h2>
-                <input type="date" id="pollDate" class="admin-input">
-                <button class="admin-btn" onclick="saveDate()">שמור תאריך</button>
-            </div>
-
-            <div class="admin-section">
-                <h2>איפוס הצבעות</h2>
-                <p>זה ימחק את כל ההצבעות הקיימות</p>
-                <button class="admin-btn danger" onclick="resetVotes()">איפוס הצבעות</button>
-            </div>
-
-            <div class="admin-section">
-                <h2>טבלת הצבעות</h2>
-                <table class="votes-table">
-                    <thead>
-                        <tr>
-                            <th>אימייל</th>
-                            <th>הצבעה</th>
-                            <th>מספר משתתפים</th>
-                        </tr>
-                    </thead>
-                    <tbody id="votesTableBody">
-                    </tbody>
-                </table>
-            </div>
-        </div>
+        <table id="votesTable">
+            <thead>
+                <tr>
+                    <th>אימייל</th>
+                    <th>הצבעה</th>
+                    <th>מספר משתתפים</th>
+                </tr>
+            </thead>
+            <tbody id="votesTableBody"></tbody>
+        </table>
     </div>
 
     <script>
-        // Load votes from localStorage
-        function loadVotes() {
-            const userVotes = JSON.parse(localStorage.getItem('userVotes') || '[]');
-            const votesTableBody = document.getElementById('votesTableBody');
-            votesTableBody.innerHTML = '';
-
-            userVotes.forEach(vote => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${vote.email}</td>
-                    <td>${getVoteText(vote.vote)}</td>
-                    <td>${vote.guests || 1}</td>
-                `;
-                votesTableBody.appendChild(row);
-            });
-        }
-
-        // Get vote text in Hebrew
+        // Function to get vote text
         function getVoteText(vote) {
             const voteTexts = {
                 yes: 'כן',
@@ -132,41 +67,56 @@
             return voteTexts[vote] || vote;
         }
 
-        // Reset all votes
+        // Function to load votes from localStorage
+        function loadVotes() {
+            const savedData = localStorage.getItem('pollData');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                const tableBody = document.getElementById('votesTableBody');
+                tableBody.innerHTML = '';
+                data.userVotes.forEach(vote => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${vote.email}</td>
+                        <td>${getVoteText(vote.vote)}</td>
+                        <td>${vote.guests}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            }
+        }
+
+        // Function to export votes
+        function exportVotes() {
+            const savedData = localStorage.getItem('pollData');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'votes.json';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+        }
+
+        // Function to reset votes
         function resetVotes() {
-            if (confirm('האם אתה בטוח שברצונך למחוק את כל ההצבעות?')) {
-                localStorage.removeItem('pollVotes');
-                localStorage.removeItem('userVotes');
+            if (confirm('האם אתה בטוח שברצונך לאפס את כל ההצבעות?')) {
+                const initialData = {
+                    votes: { yes: 0, maybe: 0, no: 0 },
+                    userVotes: []
+                };
+                localStorage.setItem('pollData', JSON.stringify(initialData));
                 loadVotes();
-                alert('כל ההצבעות נמחקו בהצלחה');
             }
         }
 
-        // Save date
-        function saveDate() {
-            const dateInput = document.getElementById('pollDate');
-            const selectedDate = dateInput.value;
-            if (!selectedDate) {
-                alert('אנא בחר תאריך');
-                return;
-            }
-            localStorage.setItem('pollDate', selectedDate);
-            alert('התאריך נשמר בהצלחה');
-        }
-
-        // Load saved date
-        function loadDate() {
-            const savedDate = localStorage.getItem('pollDate');
-            if (savedDate) {
-                document.getElementById('pollDate').value = savedDate;
-            }
-        }
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            loadVotes();
-            loadDate();
-        });
+        // Load votes when page loads
+        document.addEventListener('DOMContentLoaded', loadVotes);
     </script>
 </body>
 </html> 
