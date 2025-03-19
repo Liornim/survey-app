@@ -3,33 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>פוקר דאסט</title>
+    <title>סקר פשוט</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>פוקר דאסט</h1>
-            <div class="date">תאריך: <span id="currentDate"></span></div>
-            <div id="minyanMessage" class="minyan-message"></div>
+            <h1>סקר פשוט.</h1>
+            <div class="date"></div>
+            <div id="minyanMessage"></div>
             <div class="totals">
                 <span>סה"כ משתתפים: <span id="totalParticipants">0</span></span>
             </div>
+            <a href="admin.html" class="admin-link">הגדרות מנהל</a>
         </div>
+        <h1>סקר פשוט</h1>
         <div class="poll-container">
-            <div class="user-info">
-                <div class="input-group">
-                    <label for="userEmail">אימייל:</label>
-                    <input type="email" id="userEmail" placeholder="הכנס את האימייל שלך">
-                    <small class="vote-info">אם כבר הצבעת, תוכל לשנות את ההצבעה שלך</small>
-                </div>
-                <div class="input-group">
-                    <label for="guestCount">מספר משתתפים:</label>
-                    <input type="number" id="guestCount" min="1" value="1">
-                </div>
-            </div>
             <div class="question">
                 <h2>האם אתה מסכים?</h2>
+            </div>
+            <div class="user-info">
+                <input type="email" id="userEmail" placeholder="הכנס את האימייל שלך" required>
+                <input type="number" id="guestCount" placeholder="מספר משתתפים" min="1" value="1" required>
             </div>
             <div class="options">
                 <button class="option-btn yes" onclick="vote('yes')">כן</button>
@@ -59,22 +54,9 @@
                     <div class="result-value" id="noValue">0%</div>
                 </div>
             </div>
-            <div class="change-vote-section" id="changeVoteSection" style="display: none;">
-                <button class="change-vote-btn" onclick="resetVote()">שנה את ההצבעה</button>
-            </div>
-            <div class="results-table">
-                <h3>טבלת תוצאות</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>אימייל</th>
-                            <th>הצבעה</th>
-                            <th>אורחים</th>
-                        </tr>
-                    </thead>
-                    <tbody id="votesTableBody">
-                    </tbody>
-                </table>
+            <div class="share-section">
+                <button class="share-btn" onclick="sharePoll()">שתף את הסקר</button>
+                <div class="total-votes">סה"כ הצבעות: <span id="totalVotes">0</span></div>
             </div>
         </div>
     </div>

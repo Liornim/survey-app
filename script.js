@@ -1,15 +1,42 @@
-// Initialize votes and user data from localStorage or set defaults
-let votes = JSON.parse(localStorage.getItem('pollVotes')) || {
+// Initialize votes object
+let votes = {
     yes: 0,
     maybe: 0,
     no: 0
 };
 
-let userVotes = JSON.parse(localStorage.getItem('userVotes')) || [];
-let pollDate = localStorage.getItem('pollDate') || new Date().toISOString().split('T')[0];
+// Initialize user votes array
+let userVotes = [];
 
-// Set current date in header
-document.getElementById('currentDate').textContent = new Date(pollDate).toLocaleDateString('he-IL');
+// Load saved votes from localStorage
+function loadVotes() {
+    const savedVotes = localStorage.getItem('pollVotes');
+    const savedUserVotes = localStorage.getItem('userVotes');
+    
+    if (savedVotes) {
+        votes = JSON.parse(savedVotes);
+    }
+    
+    if (savedUserVotes) {
+        userVotes = JSON.parse(savedUserVotes);
+    }
+}
+
+// Save votes to localStorage
+function saveVotes() {
+    localStorage.setItem('pollVotes', JSON.stringify(votes));
+    localStorage.setItem('userVotes', JSON.stringify(userVotes));
+}
+
+// Get vote text in Hebrew
+function getVoteText(vote) {
+    const voteTexts = {
+        yes: 'כן',
+        maybe: 'אולי',
+        no: 'לא'
+    };
+    return voteTexts[vote] || vote;
+}
 
 // Update the display with current votes
 function updateDisplay() {
@@ -31,21 +58,14 @@ function updateDisplay() {
     }
     
     // Update each option's percentage and bar
-    if (votes.yes + votes.maybe + votes.no > 0) {
-        updateOption('yes', votes.yes, votes.yes + votes.maybe + votes.no);
-        updateOption('maybe', votes.maybe, votes.yes + votes.maybe + votes.no);
-        updateOption('no', votes.no, votes.yes + votes.maybe + votes.no);
-    }
+    const totalVotes = Object.values(votes).reduce((a, b) => a + b, 0);
+    document.getElementById('totalVotes').textContent = totalVotes;
 
-    // Update results table
-    updateResultsTable();
-}
-
-// Update individual option display
-function updateOption(option, count, total) {
-    const percentage = (count / total) * 100;
-    document.getElementById(`${option}Bar`).style.width = `${percentage}%`;
-    document.getElementById(`${option}Value`).textContent = `${Math.round(percentage)}%`;
+    ['yes', 'maybe', 'no'].forEach(option => {
+        const percentage = totalVotes > 0 ? (votes[option] / totalVotes) * 100 : 0;
+        document.getElementById(`${option}Bar`).style.width = `${percentage}%`;
+        document.getElementById(`${option}Value`).textContent = `${Math.round(percentage)}%`;
+    });
 }
 
 // Handle voting
@@ -146,72 +166,6 @@ function vote(option) {
     showThankYouMessage();
 }
 
-// Reset vote
-function resetVote() {
-    const userEmail = document.getElementById('userEmail').value.trim().toLowerCase();
-    const guestCount = parseInt(document.getElementById('guestCount').value) || 0;
-
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!userEmail) {
-        alert('אנא הכנס את האימייל שלך');
-        return;
-    }
-    if (!emailRegex.test(userEmail)) {
-        alert('אנא הכנס כתובת אימייל תקינה');
-        return;
-    }
-
-    // Remove last vote from counts
-    const lastVote = userVotes[userVotes.length - 1];
-    if (lastVote && lastVote.email === userEmail) {
-        votes[lastVote.vote]--;
-        userVotes.pop();
-        
-        // Save updated data
-        localStorage.setItem('pollVotes', JSON.stringify(votes));
-        localStorage.setItem('userVotes', JSON.stringify(userVotes));
-        
-        // Reset UI
-        document.querySelectorAll('.option-btn').forEach(btn => {
-            btn.disabled = false;
-            btn.style.opacity = '1';
-        });
-        
-        document.getElementById('changeVoteSection').style.display = 'none';
-        document.querySelector('.question h2').textContent = 'האם אתה מסכים?';
-        document.querySelector('.question h2').style.color = '#444';
-        
-        updateDisplay();
-    }
-}
-
-// Update results table
-function updateResultsTable() {
-    const tbody = document.getElementById('votesTableBody');
-    tbody.innerHTML = '';
-    
-    userVotes.forEach(vote => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${vote.email}</td>
-            <td>${getVoteText(vote.vote)}</td>
-            <td>${vote.guests || 0}</td>
-        `;
-        tbody.appendChild(tr);
-    });
-}
-
-// Get vote text in Hebrew
-function getVoteText(vote) {
-    const voteTexts = {
-        yes: 'כן',
-        maybe: 'אולי',
-        no: 'לא'
-    };
-    return voteTexts[vote];
-}
-
 // Show thank you message
 function showThankYouMessage() {
     const question = document.querySelector('.question h2');
@@ -219,5 +173,28 @@ function showThankYouMessage() {
     question.style.color = '#4CAF50';
 }
 
-// Initial display update
-updateDisplay(); 
+// Share poll
+function sharePoll() {
+    const url = window.location.href;
+    navigator.clipboard.writeText(url).then(() => {
+        alert('הקישור הועתק ללוח!');
+    }).catch(err => {
+        console.error('Failed to copy text: ', err);
+        alert('לא ניתן להעתיק את הקישור. אנא העתק אותו ידנית.');
+    });
+}
+
+// Update date
+function updateDate() {
+    const date = new Date();
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    const dateString = date.toLocaleDateString('he-IL', options);
+    document.querySelector('.date').textContent = dateString;
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+    loadVotes();
+    updateDisplay();
+    updateDate();
+}); 
