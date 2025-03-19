@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>סקר פשוט</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>סקר פשוט</h1>
+        <div class="poll-container">
+            <div class="user-info">
+                <div class="input-group">
+                    <label for="userName">שם:</label>
+                    <input type="text" id="userName" placeholder="הכנס את שמך">
+                </div>
+                <div class="input-group">
+                    <label for="voteDate">תאריך:</label>
+                    <input type="date" id="voteDate">
+                </div>
+                <div class="input-group">
+                    <label for="guestCount">מספר אורחים:</label>
+                    <input type="number" id="guestCount" min="0" value="0">
+                </div>
+            </div>
+            <div class="question">
+                <h2>האם אתה מסכים?</h2>
+            </div>
+            <div class="options">
+                <button class="option-btn yes" onclick="vote('yes')">כן</button>
+                <button class="option-btn maybe" onclick="vote('maybe')">אולי</button>
+                <button class="option-btn no" onclick="vote('no')">לא</button>
+            </div>
+            <div class="results" id="results">
+                <div class="result-bar">
+                    <div class="result-label">כן:</div>
+                    <div class="result-bar-container">
+                        <div class="result-bar-fill yes" id="yesBar" style="width: 0%"></div>
+                    </div>
+                    <div class="result-value" id="yesValue">0%</div>
+                </div>
+                <div class="result-bar">
+                    <div class="result-label">אולי:</div>
+                    <div class="result-bar-container">
+                        <div class="result-bar-fill maybe" id="maybeBar" style="width: 0%"></div>
+                    </div>
+                    <div class="result-value" id="maybeValue">0%</div>
+                </div>
+                <div class="result-bar">
+                    <div class="result-label">לא:</div>
+                    <div class="result-bar-container">
+                        <div class="result-bar-fill no" id="noBar" style="width: 0%"></div>
+                    </div>
+                    <div class="result-value" id="noValue">0%</div>
+                </div>
+            </div>
+            <div class="change-vote-section" id="changeVoteSection" style="display: none;">
+                <button class="change-vote-btn" onclick="resetVote()">שנה את ההצבעה</button>
+            </div>
+            <div class="share-section">
+                <button class="share-btn" onclick="sharePoll()">שתף את הסקר</button>
+                <div class="total-votes">סה"כ הצבעות: <span id="totalVotes">0</span></div>
+            </div>
+            <div class="results-table">
+                <h3>טבלת תוצאות</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>שם</th>
+                            <th>תאריך</th>
+                            <th>הצבעה</th>
+                            <th>אורחים</th>
+                        </tr>
+                    </thead>
+                    <tbody id="votesTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html> 
